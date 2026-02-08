@@ -1,61 +1,50 @@
 ---
 name: env-diff
-description: Compare .env files to find missing, extra, and differing variables across environments.
+description: Compare .env files and show missing, extra, and different variables across environments
 version: 0.1.0
 license: Apache-2.0
+tags:
+  - env
+  - diff
+  - devops
+  - configuration
 ---
 
 # env-diff
 
-A composable set of shell scripts that compare `.env` files across environments. Find missing variables, detect value differences, and keep your environment configurations in sync.
+Compare two or more `.env` files side-by-side. Quickly spot which variables are missing, extra, or have different values across your environments.
 
-## Purpose
-
-Managing multiple `.env` files (`.env.example`, `.env.local`, `.env.production`, `.env.staging`) is error-prone. Variables get added to one file but forgotten in others. This skill parses and diffs env files so you can see exactly what is missing, extra, or different between any two (or more) env files.
-
-## Scripts Overview
-
-| Script | Description |
-|--------|-------------|
-| `scripts/run.sh` | Main entry point — compare two or more env files |
-| `scripts/parse.sh` | Extract KEY=VALUE pairs from an env file, normalizing comments and whitespace |
-| `scripts/diff-keys.sh` | Compare keys between two env files, report missing and extra |
-| `scripts/diff-values.sh` | Compare values for shared keys between two env files |
-| `scripts/format.sh` | Format diff output as text table, JSON, or plain list |
-
-## Pipeline Examples
-
-Compare two files with default text output:
+## Usage
 
 ```bash
-./scripts/run.sh .env.example .env.local
+# Compare two files
+env-diff .env.example .env.local
+
+# Compare against a base reference
+env-diff --base=.env.example .env.local .env.production
+
+# Show actual values (masked by default)
+env-diff --values .env.example .env.local
+
+# JSON output
+env-diff --format=json .env.example .env.local
 ```
 
-Parse a single env file to see its normalized keys:
+## Exit Codes
 
-```bash
-./scripts/parse.sh .env.example
-```
+| Code | Meaning |
+|------|---------|
+| 0    | All files have the same keys |
+| 1    | Differences found (missing, extra, or different values) |
+| 2    | Error (file not found, parse error, etc.) |
 
-Find keys missing from production that exist in example:
+## Features
 
-```bash
-./scripts/diff-keys.sh .env.example .env.production
-```
-
-Compare values for shared keys and output as JSON:
-
-```bash
-./scripts/diff-values.sh .env.example .env.local | ./scripts/format.sh --format json
-```
-
-## Inputs and Outputs
-
-All scripts read from file path arguments or stdin. All scripts write to stdout. Exit code 0 means no differences found; exit code 1 means differences exist; exit code 2 means invalid input.
-
-## Environment Variables
-
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `ENV_DIFF_FORMAT` | `text` | Output format: `text`, `json`, or `list` |
-| `ENV_DIFF_IGNORE` | (empty) | Comma-separated keys to ignore in comparisons |
+- Parses standard `.env` format (KEY=VALUE)
+- Skips comments (`#`) and empty lines
+- Handles quoted values (single and double quotes)
+- Handles empty values (`KEY=`)
+- Handles BOM and trailing whitespace
+- Masks values by default for security
+- Supports text and JSON output formats
+- Compares 2 or more files at once
